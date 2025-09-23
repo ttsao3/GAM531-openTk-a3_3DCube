@@ -13,6 +13,7 @@
    added vec3 aColor color to my vertex and fragment shader as course slide showed.
 
    and added perspective and view matrices to position the cube in 3D space
+   
    ```csharp
 Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
    MathHelper.DegreesToRadians(45f),
@@ -25,14 +26,17 @@ Matrix4 model = Matrix4.CreateRotationY(rotationAngles) * Matrix4.CreateRotation
 Matrix4 mvp = model * view * projection;
 
 GL.UniformMatrix4(GL.GetUniformLocation(shaderProgramHandle, "uMVP"), false, ref mvp);
+```
 
 
 
   than finally draw it out using
+
   ```csharp
 GL.BindVertexArray(vertexArrayHandle);
 GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
 GL.BindVertexArray(0);
+```
 
    
 --
