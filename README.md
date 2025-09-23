@@ -14,15 +14,19 @@
 
    and added perspective and view matrices to position the cube in 3D space
    ```csharp
-   Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
-    MathHelper.DegreesToRadians(45f),
-    (float)Size.X / Size.Y,
-    0.1f, 100f
+Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
+   MathHelper.DegreesToRadians(45f),
+   (float)Size.X / Size.Y,
+   0.1f, 100f
 );
+```
+```
 Matrix4 view = Matrix4.CreateTranslation(0f, 0f, -3f);
 Matrix4 model = Matrix4.CreateRotationY(rotationAngles) * Matrix4.CreateRotationX(rotationAngles * 0.5f);
 Matrix4 mvp = model * view * projection;
+```
 
+```
 GL.UniformMatrix4(GL.GetUniformLocation(shaderProgramHandle, "uMVP"), false, ref mvp);
 ```
 
