@@ -32,15 +32,15 @@
 
 
 
-  than finally draw it out using
+     than finally draw it out using
 
-```
+   ```
 
       GL.BindVertexArray(vertexArrayHandle);
       GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
       GL.BindVertexArray(0);
 
-```
+   ```
 
    
 ----
