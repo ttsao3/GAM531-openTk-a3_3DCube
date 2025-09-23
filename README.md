@@ -15,7 +15,7 @@
    and added perspective and view matrices to position the cube in 3D space
    
    ```
-   ```csharp
+   
       Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
       MathHelper.DegreesToRadians(45f),
       (float)Size.X / Size.Y,
@@ -27,7 +27,7 @@
       Matrix4 mvp = model * view * projection;
 
       GL.UniformMatrix4(GL.GetUniformLocation(shaderProgramHandle, "uMVP"), false, ref mvp);
-   ```
+   
    ```
 
 
@@ -35,15 +35,15 @@
   than finally draw it out using
 
 ```
-  ```csharp
+
       GL.BindVertexArray(vertexArrayHandle);
       GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
       GL.BindVertexArray(0);
-   ```
+
 ```
 
    
---
+----
 ## Screenshot
 
 ![Running Program](./Screenshot 2025-09-23 174852.png)
