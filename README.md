@@ -43,7 +43,7 @@
    ```
 
    
-----
+--
 ## Screenshot
 
-![Running Program](./Screenshot 2025-09-23 174852.png)
+![Running Program](./Screenshot%202025-09-23%20174852.png)
