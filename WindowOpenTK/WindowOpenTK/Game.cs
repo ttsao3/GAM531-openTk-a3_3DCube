@@ -1,20 +1,32 @@
-﻿using System;
-using OpenTK;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
+﻿using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
+using System.IO;
 
 namespace WindowOpenTK
 {
     public class Game : GameWindow
     {
+        private GameWindow _window;
         private int vertexBufferHandle;
         private int shaderProgramHandle;
         private int vertexArrayHandle;
         private int indexBufferHandle;
+        private int _texture;
 
         private float rotationAngles = 0.0f;
+
+        // Default wrapping and filtering
+        private TextureWrapMode wrapMode = TextureWrapMode.Repeat;
+        private TextureMinFilter minFilter = TextureMinFilter.LinearMipmapLinear;
+        private TextureMagFilter magFilter = TextureMagFilter.Linear;
 
         // constructor for the game class
         public Game()
@@ -43,64 +55,70 @@ namespace WindowOpenTK
             GL.ClearColor(new Color4(0f, 0f, 0f, 1f));
             GL.Enable(EnableCap.DepthTest);
 
-            //36 vertices to have 12 triangle for a 3D cube (2 triangles per face * 6 faces with * 3 vertices per triangle)
+            //vertex data for a cube (position and texture coordinates)
             float[] vertices = new float[]
             {
-                //2 triangles each 
                 // Front face
-                -0.5f, -0.5f,  0.5f,  1f, 0f, 0f,
-                 0.5f, -0.5f,  0.5f,  1f, 0f, 0f,
-                 0.5f,  0.5f,  0.5f,  1f, 0f, 0f,
+                -0.5f, -0.5f,  0.5f,  0f, 0f,
+                 0.5f, -0.5f,  0.5f,  1f, 0f,
+                 0.5f,  0.5f,  0.5f,  1f, 1f,
+                -0.5f,  0.5f,  0.5f,  0f, 1f,
 
-                 0.5f,  0.5f,  0.5f,  1f, 0f, 0f,
-                -0.5f,  0.5f,  0.5f,  1f, 0f, 0f,
-                -0.5f, -0.5f,  0.5f,  1f, 0f, 0f,
 
                 // Back face
-                -0.5f, -0.5f, -0.5f,  0f, 1f, 0f,
-                -0.5f,  0.5f, -0.5f,  0f, 1f, 0f,
-                 0.5f,  0.5f, -0.5f,  0f, 1f, 0f,
-
-                 0.5f,  0.5f, -0.5f,  0f, 1f, 0f,
-                 0.5f, -0.5f, -0.5f,  0f, 1f, 0f,
-                -0.5f, -0.5f, -0.5f,  0f, 1f, 0f,
+                -0.5f, -0.5f, -0.5f,  1f, 0f,
+                 0.5f, -0.5f, -0.5f,  0f, 0f,
+                 0.5f,  0.5f, -0.5f,  0f, 1f,
+                -0.5f,  0.5f, -0.5f,  1f, 1f,
 
                 // Left face
-                -0.5f,  0.5f, -0.5f,  0f, 0f, 1f,
-                -0.5f,  0.5f,  0.5f,  0f, 0f, 1f,
-                -0.5f, -0.5f,  0.5f,  0f, 0f, 1f,
-
-                -0.5f, -0.5f,  0.5f,  0f, 0f, 1f,
-                -0.5f, -0.5f, -0.5f,  0f, 0f, 1f,
-                -0.5f,  0.5f, -0.5f,  0f, 0f, 1f,
+                -0.5f, -0.5f, -0.5f,  0f, 0f,
+                -0.5f, -0.5f,  0.5f,  1f, 0f,
+                -0.5f,  0.5f,  0.5f,  1f, 1f,
+                -0.5f,  0.5f, -0.5f,  0f, 1f,
 
                 // Right face
-                 0.5f,  0.5f, -0.5f,  1f, 1f, 0f,
-                 0.5f, -0.5f, -0.5f,  1f, 1f, 0f,
-                 0.5f, -0.5f,  0.5f,  1f, 1f, 0f,
+                 0.5f, -0.5f, -0.5f,  1f, 0f,
+                 0.5f, -0.5f,  0.5f,  0f, 0f,
+                 0.5f,  0.5f,  0.5f,  0f, 1f,
+                 0.5f,  0.5f, -0.5f,  1f, 1f,
 
-                 0.5f, -0.5f,  0.5f,  1f, 1f, 0f,
-                 0.5f,  0.5f,  0.5f,  1f, 1f, 0f,
-                 0.5f,  0.5f, -0.5f,  1f, 1f, 0f,
 
                 // Top face
-                -0.5f,  0.5f, -0.5f,  0f, 1f, 1f,
-                 0.5f,  0.5f, -0.5f,  0f, 1f, 1f,
-                 0.5f,  0.5f,  0.5f,  0f, 1f, 1f,
+                -0.5f,  0.5f, -0.5f,  0f, 0f,
+                 0.5f,  0.5f, -0.5f,  1f, 0f,
+                 0.5f,  0.5f,  0.5f,  1f, 1f,
+                -0.5f,  0.5f,  0.5f,  0f, 1f,
 
-                 0.5f,  0.5f,  0.5f,  0f, 1f, 1f,
-                -0.5f,  0.5f,  0.5f,  0f, 1f, 1f,
-                -0.5f,  0.5f, -0.5f,  0f, 1f, 1f,
 
                 // Bottom face
-                -0.5f, -0.5f, -0.5f,  1f, 0f, 1f,
-                -0.5f, -0.5f,  0.5f,  1f, 0f, 1f,
-                 0.5f, -0.5f,  0.5f,  1f, 0f, 1f,
+                -0.5f, -0.5f, -0.5f,  0f, 1f,
+                 0.5f, -0.5f, -0.5f,  1f, 1f,
+                 0.5f, -0.5f,  0.5f,  1f, 0f,
+                -0.5f, -0.5f,  0.5f,  0f, 0f,
+            };
 
-                 0.5f, -0.5f,  0.5f,  1f, 0f, 1f,
-                 0.5f, -0.5f, -0.5f,  1f, 0f, 1f,
-                -0.5f, -0.5f, -0.5f,  1f, 0f, 1f,
-
+            //index data to share vertices
+            uint[] indices = new uint[]
+            {
+                // Front face
+                0, 1, 2,
+                2, 3, 0,
+                // Back face
+                4, 5, 6,
+                6, 7, 4,
+                // Left face
+                8, 9,10,
+               10,11, 8,
+                // Right face
+               12,13,14,
+               14,15,12,
+                // Top face
+               16,17,18,
+               18,19,16,
+                // Bottom face
+               20,21,22,
+               22,23,20
             };
 
             // generate a vertex buffer object (VBO) to store vertex data on GPU
@@ -109,17 +127,26 @@ namespace WindowOpenTK
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
+            // generate a element buffer object (EBO) to store index data on GPU
+            indexBufferHandle = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferHandle);
+            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+
             // generate a vertex array object (VAO) to store the VBO configuration
             vertexArrayHandle = GL.GenVertexArray();
             GL.BindVertexArray(vertexArrayHandle);
 
             // bind the VBO and define the layout of vertex data for sharders
             GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBufferHandle);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(0);
-            GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
-            GL.EnableVertexAttribArray(1);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0); //enable position attribute
+            GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float), 3 * sizeof(float));
+            GL.EnableVertexAttribArray(1); //enable color attribute
+
+            // bind the EBO
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, indexBufferHandle);
+
             GL.BindVertexArray(0);
 
             // vertext sharder : position of each vertex
@@ -127,13 +154,13 @@ namespace WindowOpenTK
                 @"
                     #version 330 core
                     layout(location=0) in vec3 aPosition; //vertex position input
-                    layout(location=1) in vec3 aColor; //vertex color input
-                    out vec3 vColor; //output color to fragment shader
+                    layout(location=1) in vec2 aTexCoord; //vertex color input
+                    out vec2 TexCoord; //output color to fragment shader
                     uniform mat4 uMVP;
                     void main()
                     {
                         gl_Position = uMVP * vec4(aPosition, 1.0); //convert vec3 to vec4 for output
-                        vColor = aColor; //pass color to fragment shader
+                        TexCoord = aTexCoord; //pass color to fragment shader
                     }
                 ";
 
@@ -141,11 +168,12 @@ namespace WindowOpenTK
             string fragmentShaderCode =
                 @"
                     #version 330 core
-                    in vec3 vColor; //input color from vertex shader
+                    in vec2 TexCoord; //input color from vertex shader
                     out vec4 fragColor; //output color  
+                    uniform sampler2D ourTexture;
                     void main()
                     {
-                        fragColor = vec4(vColor, 1.0); //set output color with alpha 1.0
+                        fragColor = texture(ourTexture, TexCoord);
                     }
                 ";
 
@@ -165,23 +193,34 @@ namespace WindowOpenTK
             GL.AttachShader(shaderProgramHandle, vertexShaderHandle);
             GL.AttachShader(shaderProgramHandle, fragmentShaderHandle);
             GL.LinkProgram(shaderProgramHandle);
+            CheckProgram(shaderProgramHandle);
 
             // Cleanup shaders after linking (no longer needed individually)
             GL.DetachShader(shaderProgramHandle, vertexShaderHandle);
             GL.DetachShader(shaderProgramHandle, fragmentShaderHandle);
             GL.DeleteShader(vertexShaderHandle);
             GL.DeleteShader(fragmentShaderHandle);
+
+            GL.UseProgram(shaderProgramHandle);
+            int texLoc = GL.GetUniformLocation(shaderProgramHandle, "ourTexture");
+            GL.Uniform1(texLoc, 0); //set to texture unit 0
+            GL.UseProgram(0);
+
+            // Load texture
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string texturePath = Path.Combine(baseDir, "Assets", "box.jpg");
+            //string texturePath = @"D:\GAM531\w5_a5\WindowOpenTK\WindowOpenTK\Assets\box.jpg";
+            _texture = LoadTexture(texturePath);
         }
 
         protected override void OnUnload()
         {
-            //unbind and delete all the buffers and shader programs
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            //delete all the buffers and shader programs
             GL.DeleteBuffer(vertexBufferHandle);
-            GL.BindVertexArray(0);
+            GL.DeleteBuffer(indexBufferHandle);
             GL.DeleteVertexArray(vertexArrayHandle);
-            GL.UseProgram(0);
             GL.DeleteProgram(shaderProgramHandle);
+            GL.DeleteTexture(_texture);
 
             base.OnUnload();
 
@@ -191,7 +230,20 @@ namespace WindowOpenTK
         protected override void OnUpdateFrame(FrameEventArgs args)
         {
             base.OnUpdateFrame(args);
-            rotationAngles += (float)args.Time * 2f; //rotate 2 radians per second
+            rotationAngles += (float)args.Time * 0.5f; //rotate 2 radians per second
+
+            // Handle input
+            if (this.IsKeyDown(Keys.Escape)) this.Close();
+
+            // Switch wrapping modes (right now has no affects due to texture coords)
+            if (this.IsKeyPressed(Keys.D1)) SetWrapMode(TextureWrapMode.Repeat);
+            if (this.IsKeyPressed(Keys.D2)) SetWrapMode(TextureWrapMode.MirroredRepeat);
+            if (this.IsKeyPressed(Keys.D3)) SetWrapMode(TextureWrapMode.ClampToEdge);
+            if (this.IsKeyPressed(Keys.D4)) SetWrapMode(TextureWrapMode.ClampToBorder);
+
+            // Switch filtering modes
+            if (this.IsKeyPressed(Keys.F1)) SetFilter(TextureMinFilter.Nearest, TextureMagFilter.Nearest);
+            if (this.IsKeyPressed(Keys.F2)) SetFilter(TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear);
         }
 
         //called when i need to update any game visuals
@@ -225,13 +277,73 @@ namespace WindowOpenTK
             int mvpLoc = GL.GetUniformLocation(shaderProgramHandle, "uMVP");
             GL.UniformMatrix4(mvpLoc, false, ref mvp);
 
-            //bind the VAO and draw the triangle
+            //bind the texture
+            GL.ActiveTexture(TextureUnit.Texture0);
+            GL.BindTexture(TextureTarget.Texture2D, _texture);
+
+            //bind the VAO and draw the cube
             GL.BindVertexArray(vertexArrayHandle);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+            GL.DrawElements(PrimitiveType.Triangles, 36, DrawElementsType.UnsignedInt, 0);
             GL.BindVertexArray(0);
 
             //display the rendered frame
             SwapBuffers();
+        }
+
+        private void CheckProgram(int program)
+        {
+            GL.GetProgram(program, GetProgramParameterName.LinkStatus, out int success);
+            if (success == 0) throw new Exception(GL.GetProgramInfoLog(program));
+        }
+
+        private int LoadTexture(string path)
+        {
+            if (!File.Exists(path)) throw new FileNotFoundException($"Could not find texture file: {path}");
+
+            int texId = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, texId);
+
+            // Initial wrap and filter
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrapMode);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrapMode);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
+
+            using (Bitmap bmp = new Bitmap(path))
+            {
+                bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+                var data = bmp.LockBits(
+                    new Rectangle(0, 0, bmp.Width, bmp.Height),
+                    ImageLockMode.ReadOnly,
+                    System.Drawing.Imaging.PixelFormat.Format32bppArgb); // fully qualified
+
+                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, data.Width, data.Height, 0,
+                              OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+
+                bmp.UnlockBits(data);
+            }
+
+            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            return texId;
+        }
+
+        // Update wrap mode live
+        private void SetWrapMode(TextureWrapMode mode)
+        {
+            wrapMode = mode;
+            GL.BindTexture(TextureTarget.Texture2D, _texture);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrapMode);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrapMode);
+        }
+
+        // Update filter mode live
+        private void SetFilter(TextureMinFilter min, TextureMagFilter mag)
+        {
+            minFilter = min;
+            magFilter = mag;
+            GL.BindTexture(TextureTarget.Texture2D, _texture);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)minFilter);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)magFilter);
         }
 
         // Helper function to check for shader compilation errors
