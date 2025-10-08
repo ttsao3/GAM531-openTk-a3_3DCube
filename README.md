@@ -5,7 +5,7 @@
    with OpenTk.
    
    
-2. How I rendered the cube
+2. How I rendered the cube.
 
    
    I first created 36 vertices to support all face of my cube (3 vertices * 2 triangle per face * 6 faces) and assignemnt color to each square face (2 triangle face).
