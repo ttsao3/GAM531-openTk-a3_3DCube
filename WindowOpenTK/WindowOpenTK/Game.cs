@@ -24,18 +24,25 @@ namespace WindowOpenTK
         private int lightColorLoc;
         private int objectColorLoc;
 
-        private float deltaTime = 0.0f;
+        
 
         private Vector3 lightPos = new Vector3(1.2f, 0.0f, 2.0f); // Position of the light source
         private Vector3 lightColor = new Vector3(1.0f, 1.0f, 1.0f); // White light
         private Vector3 objectColor = new Vector3(0.5f, 0.5f, 0.5f); // Grey object color
+
+        //assignment 6
+        private float deltaTime = 0.0f;
+
         private Vector3 cameraPos = new Vector3(0.0f, 0.0f, 3.0f); // Camera position
         private Vector3 cameraFront = new Vector3(0.0f, 0.0f, -1.0f); // Camera front direction
         private Vector3 cameraUp = new Vector3(0.0f, 1.0f, 0.0f); // Camera up direction
 
         private float yaw = -90.0f; // Yaw is initialized to -90.0 degrees to look along the negative Z-axis
         private float pitch = 0.0f; // Pitch is initialized to 0.0 degrees
+        private float _fov = 45.0f;
         float sensitivity = 0.1f; // Mouse sensitivity
+        private bool _firstMove = true;
+        private Vector2 _lastPos;
 
         // constructor for the game class
         public Game()
@@ -179,6 +186,10 @@ namespace WindowOpenTK
             viewPosLoc = GL.GetUniformLocation(shaderProgramHandle, "viewPos");
             lightColorLoc = GL.GetUniformLocation(shaderProgramHandle, "lightColor");
             objectColorLoc = GL.GetUniformLocation(shaderProgramHandle, "objectColor");
+
+            //--------Exercise 3----------
+            //make sure mouse cursor invisible and captured so we can have proper FPS-camera movement
+            CursorState = CursorState.Grabbed;
         }
 
         protected override void OnUnload()
@@ -200,6 +211,9 @@ namespace WindowOpenTK
         {
             base.OnUpdateFrame(args);
             //rotationAngles += (float)args.Time * 2f; //rotate 2 radians per second
+
+            //-------------Exercise 2-------------
+            //camera movement with WASD with frame-rate independant speed
             var input = KeyboardState;
             deltaTime = (float)args.Time;
             float speed = 2.5f * deltaTime;
@@ -212,33 +226,62 @@ namespace WindowOpenTK
                 cameraPos -= Vector3.Normalize(Vector3.Cross(cameraFront, cameraUp)) * speed;
             if (input.IsKeyDown(Keys.D))
                 cameraPos += Vector3.Normalize(Vector3.Cross(cameraFront, cameraUp)) * speed;
+            if (input.IsKeyDown(Keys.E))
+                cameraPos += cameraUp * speed;
+            if (input.IsKeyDown(Keys.Q))
+                cameraPos -= cameraUp * speed;
             if (input.IsKeyDown(Keys.Escape))
                 Close();
 
         }
 
+        //-------------Exercise 3------------
         // Handle mouse movement for camera control
         protected override void OnMouseMove(MouseMoveEventArgs e)
         {
             base.OnMouseMove(e);
-            MouseMoved(e.DeltaX, e.DeltaY);
+
+            if (!IsFocused) { return; }
+
+            if (_firstMove) { 
+                _lastPos = new Vector2(e.X, e.Y);
+                _firstMove = false;
+            }
+            else
+            {
+                var deltaX = e.X - _lastPos.X;
+                var deltaY = e.Y - _lastPos.Y;
+                _lastPos = new Vector2(e.X, e.Y);
+
+
+                yaw += deltaX * sensitivity; // Adjust yaw based on mouse movement
+                pitch -= deltaY * sensitivity; // Invert y-axis for typical FPS camera control
+
+                // Constrain the pitch to prevent screen flip
+                if (pitch > 89.0f)
+                    pitch = 89.0f;
+                if (pitch < -89.0f)
+                    pitch = -89.0f;
+                // Update camera front vector
+                Vector3 front;
+                front.X = MathF.Cos(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
+                front.Y = MathF.Sin(MathHelper.DegreesToRadians(pitch));
+                front.Z = MathF.Sin(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
+                cameraFront = Vector3.Normalize(front);
+            }
+                
         }
-        // Update camera direction based on mouse movement
-        private void MouseMoved(float xOffset, float yOffset)
+
+        //---------Exercise 4------------
+        //OnMouseWheel to control camera fov
+        protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
-            yaw += xOffset *= sensitivity; // Adjust yaw based on mouse movement
-            pitch -= yOffset *= sensitivity; // Invert y-axis for typical FPS camera control
-            // Constrain the pitch to prevent screen flip
-            if (pitch > 89.0f)
-                pitch = 89.0f;
-            if (pitch < -89.0f)
-                pitch = -89.0f;
-            // Update camera front vector
-            Vector3 front;
-            front.X = MathF.Cos(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
-            front.Y = MathF.Sin(MathHelper.DegreesToRadians(pitch));
-            front.Z = MathF.Sin(MathHelper.DegreesToRadians(yaw)) * MathF.Cos(MathHelper.DegreesToRadians(pitch));
-            cameraFront = Vector3.Normalize(front);
+            base.OnMouseWheel(e);
+
+            _fov -= e.Offset.Y * 5.0f;
+
+            if (_fov < 30.0f) { _fov = 30.0f; }
+            if (_fov > 90.0f) { _fov = 90.0f; }
         }
 
         //called when i need to update any game visuals
@@ -252,10 +295,12 @@ namespace WindowOpenTK
             //use our shader program
             GL.UseProgram(shaderProgramHandle);
 
+            //----------Exercise 1------------
             //create model, view, projection matrices
             // Projection matrix (perspective)
             Matrix4 projection = Matrix4.CreatePerspectiveFieldOfView(
-                MathHelper.DegreesToRadians(45f),
+                //original from exercise 1: MathHelper.DegreesToRadians(45f),
+                MathHelper.DegreesToRadians(_fov),
                 (float)Size.X / Size.Y,
                 0.1f,
                 100f
