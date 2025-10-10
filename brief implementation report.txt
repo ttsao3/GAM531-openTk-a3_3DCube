@@ -1,0 +1,11 @@
+Include a brief report (1-2 paragraphs) explaining your implementation:
+
+In assignment 5 our main goal is to add Phong lighting to a 3D object:
+Everything was clone from my assignment 3 Cube, but for this assignment specifically, I created two shader files for phong.vert and phong.frag (they store the logic for lighting), and load them through System.IO.File.ReadAllText, and link them to the program just like how we did before(createshader, shadersource and compileshader and attach to shaderProgram).
+also used GetUniformLocation to get locations for shader uniforms from our two shader files( model, view, projection, lightPos, viewPos, lightColor, objectColor) in Onload.
+And in OnRanderFrame, i created projection(the perspective), view (with LookAt from the camera angle and position I set up in decleration) and model(indentity for stationary cube, because we are moving the camera instead of the cube)  metrics to set up transformations and lighting with UniformMatrix4(matrics) and Uniform3(lighting and position).
+Camera was set up to have isKetDown to move camera left, right, closer and further, and OnMouseMove event which i can move camera angle with my mouse curser (following the course slide).
+
+
+Challenges I faced:
+One Challenge or more like a issue I'm facing is right now the OnMouseMove, it is kind of hard to see the back of the 3D cube and even harder with the mouse camera snapping when entering the window, and not sure how i can make the curser not stop the camera movement when it is off the window, and even have tried to set and ignore the first mouse move/input, but I can not get it to work.
