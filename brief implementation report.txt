@@ -1,11 +1,21 @@
 Include a brief report (1-2 paragraphs) explaining your implementation:
 
-In assignment 5 our main goal is to add Phong lighting to a 3D object:
-Everything was clone from my assignment 3 Cube, but for this assignment specifically, I created two shader files for phong.vert and phong.frag (they store the logic for lighting), and load them through System.IO.File.ReadAllText, and link them to the program just like how we did before(createshader, shadersource and compileshader and attach to shaderProgram).
-also used GetUniformLocation to get locations for shader uniforms from our two shader files( model, view, projection, lightPos, viewPos, lightColor, objectColor) in Onload.
-And in OnRanderFrame, i created projection(the perspective), view (with LookAt from the camera angle and position I set up in decleration) and model(indentity for stationary cube, because we are moving the camera instead of the cube)  metrics to set up transformations and lighting with UniformMatrix4(matrics) and Uniform3(lighting and position).
-Camera was set up to have isKetDown to move camera left, right, closer and further, and OnMouseMove event which i can move camera angle with my mouse curser (following the course slide).
+
+Perspective camera implemented using CreatePerspectiveFieldOfView with initial 45 degrees fov, aspect ratio based on window size, near plane and far plane at 0.1 and 100.
+
+View Matrix set up the view with Matrix4.LookAt using the camera position i created ( cameraPos, cameraFront, cameraUp ).
+
+Keyboard camera movement implemented using IsKeyDown in my OnUpdateFrame, and camera position was adjusted by cameraFront (forward/backward) and the cross product of cameraFront and cameraUp (left/right) and speed in deltaTime.
+
+Mouse look implemented by overriding OnMouseMove, yaw and pitch was added to control camera rotation, _lastPos to store mouse coordinates to track mouse movement between frames and _firstMove to initialize mouse position. Pitch was clamped between -89 and 89 degrees to prevent camera flip, also added CursorState.Grabbed in onLoad to make sure my cursor was invisible and lock to my lunch window so I can control my camera without cursor leaving the window.
+
+Zooming with Mousewheel implemeted by overriding OnMouseWheel, adjust fov by subtracting offextY * 5.0 (5.0 to change fov speed), and clamped fov to between 30 and 90 for reasonable zoom levels.
+
+finally update CreatePerspectiveFieldOfView to use dynamic fov, to make sure projection matrix shows the correct zoom level when mouse wheel is crolled.
 
 
 Challenges I faced:
-One Challenge or more like a issue I'm facing is right now the OnMouseMove, it is kind of hard to see the back of the 3D cube and even harder with the mouse camera snapping when entering the window, and not sure how i can make the curser not stop the camera movement when it is off the window, and even have tried to set and ignore the first mouse move/input, but I can not get it to work.
+I was having some window focus issue with my camera in assignment 5, but in assignment 6, I have got a clear idea how to fix the issue i was having, simply just by adding this line of code into my onLoad(), so my cursor won't stop when hitting the edge of my laptop screen
+
+
+"CursorState = CursorState.Grabbed;"
