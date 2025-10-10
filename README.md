@@ -1,13 +1,13 @@
-# GAM531-openTk-a3_3DCube - Lightings
+# GAM531-openTk-a3_3DCube - Camera
 
    
 --
 ## Screenshot
 
-![Running Program](./Screenshot%202025-10-07%20222751.png)
+![Running Program](./)
 
 --
 ## Screenshot
 
-![Running Program](./Screenshot%202025-10-07%20222934.png)
+![Running Program](./)
 
