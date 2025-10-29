@@ -29,8 +29,12 @@ Explore a textured room with 3 illuminated cubes. Toggle lights with mouse butto
 Textures:
 
 https://www.behance.net/gallery/71992995/15-Free-Metallic-Gold-Textures
+
 https://www.3dmd.net/gallery/displayimage-103.html
+
 https://opengameart.org/content/tiny-texture-pack-3-gem11-512x512png
+
 https://www.filterforge.com/filters/6821.html
+
 https://fity.club/lists/w/wooden-crate-texture/
 
