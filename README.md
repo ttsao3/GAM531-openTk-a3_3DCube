@@ -21,7 +21,7 @@ Explore a textured room with 3 illuminated cubes. Toggle lights with mouse butto
 
 ## Build & Run
 1. Clone repo
-2. Open `Game.sln` in Visual Studio 2022
+2. Open `WindowOpenTk.sln` in Visual Studio 2022
 3. **NuGet** (should already be pre-installed with repository clone, but if not): install OpenTK, StbImageSharp
 4. Build → Run 
 
