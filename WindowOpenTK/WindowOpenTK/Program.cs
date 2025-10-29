@@ -1,15 +1,25 @@
 ﻿using System;
-using WindowOpenTk;
 using WindowOpenTK;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 
 namespace WindowOpenTk
 {
     //Main entry point for c# console
-    class Program
+    public static class Program
     {
-        static void Main(String[] args)
+        private static void Main()
         {
-            using (Game game = new Game())
+            var nativeWindowSettings = new NativeWindowSettings()
+            {
+                ClientSize = new Vector2i(800, 600),
+                Title = "GAM531 midterm game",
+                // This is needed to run on macos
+                Flags = ContextFlags.ForwardCompatible,
+            };
+
+            using (var game = new Game(GameWindowSettings.Default, nativeWindowSettings))
             {
                 game.Run();
             }
